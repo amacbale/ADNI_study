@@ -1,16 +1,16 @@
 library(tidyverse)
 
 # load up data
-raw_df <- read_csv("G:\\Shared drives\\ADNI\\ADNI 2026\\Data files\\UCBERKELEY_AMY_6MM_16Mar2026.csv")
-demo <- read_csv("G:\\Shared drives\\ADNI\\ADNI 2026\\Data files\\PTDEMOG_16Mar2026.csv", na = c("NA","-4"))
-dx <- read_csv("G:\\Shared drives\\ADNI\\ADNI 2026\\Data files\\DXSUM_16Mar2026.csv")
+raw_df <- read_csv("G:\\Shared drives\\ADNI\\ADNI 2026\\UCBERKELEY_AMY_6MM_16Mar2026.csv")
+demo <- read_csv("G:\\Shared drives\\ADNI\\ADNI 2026\\PTDEMOG_16Mar2026.csv", na = c("NA","-4"))
+dx <- read_csv("G:\\Shared drives\\ADNI\\ADNI 2026\\DXSUM_16Mar2026.csv")
 
 str(raw_df)
 raw_df <- raw_df %>% select(RID, VISCODE, VISCODE2, CENTILOIDS)
 dim(raw_df)
 
 str(demo)
-demo <- demo %>% filter(PHASE != "ADNI4") %>% select(RID, PTGENDER, PTDOBYY)
+demo <- demo %>% filter(PHASE != "ADNI4") %>% select(RID, PTGENDER, PTDOB)
 dim(demo)
 demo <- demo[!duplicated(demo),]
 demo <- demo %>% drop_na()
@@ -31,10 +31,13 @@ df %>% filter(RID == 74)
 # remove other ADNI 4 indicators
 df <- df %>% filter(!VISCODE %in% c("4_sc","4_bl","4_init","4_m12","4_m24","4_m36"))
 
-compute_age <- function(dob, exam_date) {
+compute_age <- function(dob_chr, exam_date) {
+  dob <- as.Date(paste0("01/", dob_chr), format = "%d/%m/%Y")
   age <- as.numeric(difftime(exam_date, dob, units = "days")) / 365.25
   return(age)
 }
-df <- df %>% mutate(AGE = compute_age(PTDOBYY, EXAMDATE))
+df %>% str()
+df <- df %>% mutate(AGE = compute_age(PTDOB, EXAMDATE))
 
+write_csv(df, "G:\\Shared drives\\ADNI\\ADNI 2026\\Data files\\CL_Dx_demog.csv")
 
