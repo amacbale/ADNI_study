@@ -39,5 +39,31 @@ compute_age <- function(dob_chr, exam_date) {
 df %>% str()
 df <- df %>% mutate(AGE = compute_age(PTDOB, EXAMDATE))
 
-write_csv(df, "G:\\Shared drives\\ADNI\\ADNI 2026\\Data files\\CL_Dx_demog.csv")
+df %>% filter(R)
+
+#write_csv(df, "G:\\Shared drives\\ADNI\\ADNI 2026\\Data files\\CL_Dx_demog.csv")
+
+## QC stuff
+demo %>% count(HAS_QC_ERROR) %>% mutate(pct = n / sum(n) * 100)
+dx %>% count(HAS_QC_ERROR) %>% mutate(pct = n / sum(n) * 100)
+raw_df %>% count(qc_flag) %>% mutate(pct = n / sum(n) * 100)
+
+demo %>% filter(!is.na(HAS_QC_ERROR)) %>% count(HAS_QC_ERROR) %>% mutate(pct = n / sum(n) * 100)
+dx %>% filter(!is.na(HAS_QC_ERROR)) %>% count(HAS_QC_ERROR) %>% mutate(pct = n / sum(n) * 100)
+raw_df %>% filter(!is.na(qc_flag)) %>% count(qc_flag) %>% mutate(pct = n / sum(n) * 100)
+
+
+## for raw_df via UC BERKELEY
+# Quality control flag based on visual inspection: 
+# 2 = Pass; 
+# 1 = Partial pass; 
+# 0 = Fail;
+# -1 = Not assessed;
+# -2 = Cannot be processed; See UCBERKELEY Amyloid Processing Methods PDF on LONI for details.
+
+## for demo and dx
+# 0 = Does not have QC error or QC error has been approved; 1 = Has QC error
+
+
+
 
