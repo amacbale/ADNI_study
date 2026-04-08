@@ -6,21 +6,24 @@ demo <- read_csv("G:\\Shared drives\\ADNI\\ADNI 2026\\PTDEMOG_16Mar2026.csv", na
 dx <- read_csv("G:\\Shared drives\\ADNI\\ADNI 2026\\DXSUM_16Mar2026.csv")
 
 str(raw_df)
-raw_df <- raw_df %>% select(RID, VISCODE, VISCODE2, CENTILOIDS)
+raw_df <- raw_df %>% select(RID, VISCODE, VISCODE2, CENTILOIDS, qc_flag)
 dim(raw_df)
 
 str(demo)
-demo <- demo %>% filter(PHASE != "ADNI4") %>% select(RID, PTGENDER, PTDOB)
+demo <- demo %>% filter(PHASE != "ADNI4") %>% select(RID, PTGENDER, PTDOB, HAS_QC_ERROR)
 dim(demo)
 demo <- demo[!duplicated(demo),]
-demo <- demo %>% drop_na()
+demo <- demo %>% filter(!if_all(everything(), is.na))
 
 str(dx)
-dx <- dx %>% filter(PHASE != "ADNI4") %>% select(RID, VISCODE, VISCODE2, EXAMDATE, DIAGNOSIS)
+dx <- dx %>% filter(PHASE != "ADNI4") %>% select(RID, VISCODE, VISCODE2, EXAMDATE, DIAGNOSIS, HAS_QC_ERROR)
 dim(dx)
 
-df <- left_join(raw_df, dx, by = c("RID","VISCODE","VISCODE2"))      
+df <- left_join(raw_df, dx, by = c("RID","VISCODE","VISCODE2")) 
+df <- df %>% rename(HAS_QC_ERROR.dx = HAS_QC_ERROR)
 df <- left_join(df, demo, by = c("RID"))
+df <- df %>% rename(HAS_QC_ERROR.demo = HAS_QC_ERROR,
+                    qc_flag.pet = qc_flag)
 dim(df)
 df %>% View()
 
@@ -39,9 +42,9 @@ compute_age <- function(dob_chr, exam_date) {
 df %>% str()
 df <- df %>% mutate(AGE = compute_age(PTDOB, EXAMDATE))
 
-df %>% filter(R)
+df
 
-#write_csv(df, "G:\\Shared drives\\ADNI\\ADNI 2026\\Data files\\CL_Dx_demog.csv")
+write_csv(df, "G:\\Shared drives\\ADNI\\ADNI 2026\\Data files\\CL_Dx_demog.csv")
 
 ## QC stuff
 demo %>% count(HAS_QC_ERROR) %>% mutate(pct = n / sum(n) * 100)
